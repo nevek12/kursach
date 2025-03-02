@@ -1,0 +1,42 @@
+<section class="my-navigation">
+    <nav class="navbar navbar-expand-lg bg-body-tertiary" data-bs-theme="dark">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="navbar-nav me-auto mb-2 mb-lg-0 d-flex"> <!-- Добавлен d-flex класс -->
+                    {% if request.get_full_path == '/' %}
+                        <a class="nav-link active" href="{% url 'index' %}">Главная</a>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'index' %}">Главная</a>
+                    {% endif %}
+                    <a class="nav-link" href="#">Че-то там 1 раздел</a>
+                    <a class="nav-link" href="#">Че-то там 2 раздел</a>
+                    <a class="nav-link" href="#">Че-то там 3 раздел</a>
+                    <a class="nav-link" href="#">Че-то там последний раздел</a>
+                </div>
+
+                <form class="d-flex" role="search">
+
+                    {% if user.is_authenticated %}
+                        <span class="navbar-text me-2">{{ user }}</span>
+                        <a href="{% url 'signout' %}" class="btn btn-outline-light">Выход</a>
+                    {% else %}
+                        {% if request.get_full_path == '/signin/' %}
+                            <a href="{% url 'signin' %}" class="btn btn-outline-light me-2 active">Войти</a>
+                        {% else %}
+                            <a href="{% url 'signin' %}" class="btn btn-outline-light me-2">Войти</a>
+                        {% endif %}
+                        {% if request.get_full_path == '/signup/' %}
+                            <a href="{% url 'signup' %}" class="btn btn-outline-light me-2 active">Регистрация</a>
+                        {% else %}
+                            <a href="{% url 'signup' %}" class="btn btn-outline-light me-2">Регистрация</a>
+                        {% endif %}
+                    {% endif %}
+                </form>
+            </div>
+        </div>
+    </nav>
+</section>
+

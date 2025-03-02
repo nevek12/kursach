@@ -1,0 +1,20 @@
+{% extends './base.html' %}
+
+{% block title %}Главная страница{% endblock %}
+
+
+{% block pagination %}
+<div class="container">
+    <h2>Управление обучением модели</h2>
+
+    <input type="number" placeholder="Количество эпох" id="epochsInput">
+    <button id="trainButton">Обучать</button>
+
+    <div style="margin-top: 20px;">
+        <button id="pauseButton">Пауза</button>
+        <button id="stopButton">Остановить обучение</button>
+        <button id="resumeButton">Возобновить обучение</button>
+        <button id="predictButton">Спрогнозировать</button>
+    </div>
+</div>
+{% endblock %}
