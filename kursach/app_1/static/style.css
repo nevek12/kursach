@@ -112,3 +112,22 @@ button {
 button:hover {
     opacity: 0.9; /* Немного уменьшаем непрозрачность при наведении */
 }
+/* ----------------------  стили для поле ввода к llm ------------------------- */
+#chat-container {
+    max-width: 800px;
+    margin-left: 1100px;
+    margin-top: -200px;
+}
+#response-box {
+    height: 500px;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin: 10px 0;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+#input-box {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+}

@@ -1,5 +1,5 @@
 {% extends './base.html' %}
-
+{% load static %}
 {% block title %}Главная страница{% endblock %}
 
 
@@ -17,4 +17,11 @@
         <button id="predictButton">Спрогнозировать</button>
     </div>
 </div>
+    
+<div id="chat-container">
+    <div id="response-box"></div>
+    <input type="text" id="input-box" placeholder="Введите ваш запрос...">
+    <button onclick="sendMessage()">Отправить</button>
+</div>
+<script src="{% static 'js/chat.js' %}"></script>
 {% endblock %}
