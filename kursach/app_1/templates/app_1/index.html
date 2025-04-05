@@ -4,6 +4,7 @@
 
 
 {% block pagination %}
+{% if user.is_authenticated %}
 <div class="container">
     <h2>Управление обучением модели</h2>
 
@@ -17,11 +18,57 @@
         <button id="predictButton">Спрогнозировать</button>
     </div>
 </div>
-    
+<script src="{% static 'js/chat.js' %}"></script>
 <div id="chat-container">
     <div id="response-box"></div>
     <input type="text" id="input-box" placeholder="Введите ваш запрос...">
     <button onclick="sendMessage()">Отправить</button>
 </div>
-<script src="{% static 'js/chat.js' %}"></script>
+
+
+
+{% else %}
+<div class="container-fluid vh-100">
+    <div class="row h-100 justify-content-center align-items-center">
+        <div class="col-12 col-md-8 col-lg-6 text-center bg-white rounded-4 shadow-lg p-5 bg-opacity-75">
+            <!-- Заголовок -->
+            <div class="mb-5">
+                <h2 class="display-5 fw-bold mb-3 text-primary">
+                    Здравствуй, дорогой пользователь
+                </h2>
+                <p class="lead text-primary">
+                    Хотите зарегистрироваться или войти в систему?
+                </p>
+            </div>
+
+            <!-- Кнопки -->
+            <div class="d-flex flex-column flex-md-row gap-4 justify-content-center align-items-center">
+                {% if request.get_full_path == '/signin/' %}
+                    <a href="{% url 'signin' %}"
+                       class="btn btn-lg btn-primary py-3 px-5 fs-4 fw-bold shadow-sm active">
+                        Войти
+                    </a>
+                {% else %}
+                    <a href="{% url 'signin' %}"
+                       class="btn btn-lg btn-primary py-3 px-5 fs-4 fw-bold shadow-sm">
+                        Войти
+                    </a>
+                {% endif %}
+
+                {% if request.get_full_path == '/signup/' %}
+                    <a href="{% url 'signup' %}"
+                       class="btn btn-lg btn-success py-3 px-5 fs-4 fw-bold shadow-sm active">
+                        Регистрация
+                    </a>
+                {% else %}
+                    <a href="{% url 'signup' %}"
+                       class="btn btn-lg btn-success py-3 px-5 fs-4 fw-bold shadow-sm">
+                        Регистрация
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

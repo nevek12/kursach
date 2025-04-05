@@ -59,8 +59,7 @@ function sendMessage() {
             }
             typeWriter();
         }
-    })
-    .catch(error => {
+    }).catch(error => {
         console.error('Error:', error);
         appendResponse('\nОшибка: ' + error.message);
     });
