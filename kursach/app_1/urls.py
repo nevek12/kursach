@@ -8,4 +8,5 @@ urlpatterns = [
     path('signout/', sign_out, name='signout'),
     path('tag/', ChatView.as_view(), name='chat'),
     path('generate/', GenerateResponseView.as_view(), name='generate_response'),
+    path('api/tcpdump/', TcpDumpData.as_view(), name='tcp_info'),
 ]

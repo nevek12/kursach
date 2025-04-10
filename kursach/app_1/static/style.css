@@ -115,7 +115,7 @@ button:hover {
 /* ----------------------  стили для поле ввода к llm ------------------------- */
 #chat-container {
     max-width: 800px;
-    margin-left: 1100px;
+    margin-left: 1150px;
     margin-top: -200px;
 }
 #response-box {
@@ -131,3 +131,10 @@ button:hover {
     padding: 10px;
     margin: 10px 0;
 }
+
+/* --------------------------------   стили для вывода данных tcp -------------------- */
+
+#view-container-tcp {
+    margin-top: -450px;
+}
+

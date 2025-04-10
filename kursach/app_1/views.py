@@ -1,6 +1,11 @@
 from django.shortcuts import render
 from django.views import View
 from django.urls import reverse
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
 from .forms import SignUpForm, SignInForm
 from django.contrib.auth import login, authenticate, logout
 from django.http import HttpResponseRedirect, StreamingHttpResponse
@@ -15,6 +20,9 @@ import re
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
 
+from .models import TcpPacket
+
+
 class MainView(View):
     pass
 
@@ -24,10 +32,61 @@ def sign_out(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
+def packet_list():
+    return {"packets": TcpPacket.objects.all().order_by("-created_at")}
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class TcpDumpData(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        packet_data = request.data.get("packet_data")
+
+        if not packet_data:
+            return JsonResponse({"status": "error", "message": "No packet data provided"}, status=400)
+
+        # Парсинг данных пакета
+        parsed_data = self.parse_packet(packet_data)
+
+        if parsed_data:
+            self.save_packet(parsed_data)
+            return JsonResponse({"status": "success", "data": parsed_data})
+
+        return JsonResponse({"status": "error", "message": "Invalid packet format"}, status=400)
+
+    def parse_packet(self, raw_data: str) -> dict:
+        """Парсинг сырых данных из tcpdump"""
+        pattern = r"(\d+:\d+:\d+\.\d+) IP (.+?) > (.+?): (.+)"
+        match = re.match(pattern, raw_data)
+
+        if not match:
+            return None
+
+        return {
+            "timestamp": match.group(1),
+            "source_ip": match.group(2).split(".")[0],
+            "destination_ip": match.group(3).split(".")[0],
+            "protocol": "IP",
+            "details": match.group(4)
+        }
+
+    def save_packet(self, data: dict):
+        """Сохранение пакета в базу данных"""
+        TcpPacket.objects.create(
+            timestamp=data['timestamp'],
+            source_ip=data['source_ip'],
+            destination_ip=data['destination_ip'],
+            protocol=data['protocol'],
+            details=data['details']
+        )
+
 #Прописать аннотацию для доступа к контенту после авторизации, в том числе и для API
 #Фанйнтюнинг модели (чтобы на русском лучше отвечала). И поработать над постобработкой
 def index(request):
-    return render(request, 'app_1/index.html')
+
+    return render(request, 'app_1/index.html', packet_list())
 
 class SignUpView(View):
     def get(self, request, *args, **kwargs):

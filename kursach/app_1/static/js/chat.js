@@ -1,6 +1,6 @@
 // chat.js
-function appendResponse(text) {
-    const responseBox = document.getElementById('response-box');
+function appendResponse(text, elementId) {
+    const responseBox = document.getElementById(elementId);
     responseBox.innerHTML += text + ' ';
     responseBox.scrollTop = responseBox.scrollHeight;
 }
@@ -30,8 +30,8 @@ function sendMessage() {
     if (!message) return;
 
     document.getElementById('input-box').value = '';
-    appendResponse('\nПользователь: ' + message);
-    appendResponse('\nAI: thinking...');
+    appendResponse('\nПользователь: ' + message, 'response-box');
+    appendResponse('\nAI: thinking...', 'response-box');
 
 
     fetch('/generate/', {
@@ -52,7 +52,7 @@ function sendMessage() {
             function typeWriter() {
                 if (index < data.parts.length) {
 
-                    appendResponse(data.parts[index]);
+                    appendResponse(data.parts[index], 'response-box');
                     index++;
                     setTimeout(typeWriter, 100);
                 }
@@ -61,8 +61,12 @@ function sendMessage() {
         }
     }).catch(error => {
         console.error('Error:', error);
-        appendResponse('\nОшибка: ' + error.message);
+        appendResponse('\nОшибка: ' + error.message, 'response-box');
     });
+}
+
+function sendInfoTcp() {
+
 }
 
 // Инициализация после загрузки документа
@@ -77,4 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         }
     });
+
 });
+

@@ -19,12 +19,39 @@
     </div>
 </div>
 <script src="{% static 'js/chat.js' %}"></script>
+
 <div id="chat-container">
     <div id="response-box"></div>
     <input type="text" id="input-box" placeholder="Введите ваш запрос...">
     <button onclick="sendMessage()">Отправить</button>
 </div>
-
+<div id="view-container-tcp"> 
+    <div class="container mt-4">
+        <h1>Последние пакеты</h1>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Время</th>
+                    <th>Источник</th>
+                    <th>Назначение</th>
+                    <th>Протокол</th>
+                    <th>Детали</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for packet in packets %}
+                <tr>
+                    <td>{{ packet.timestamp }}</td>
+                    <td>{{ packet.source_ip }}</td>
+                    <td>{{ packet.destination_ip }}</td>
+                    <td>{{ packet.protocol }}</td>
+                    <td>{{ packet.details }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>  
+</div>   
 
 
 {% else %}
