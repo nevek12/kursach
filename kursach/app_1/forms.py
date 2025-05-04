@@ -65,3 +65,25 @@ class SignInForm(forms.Form):
             'id': "inputPassword",
         })
     )
+
+
+class SearchForm(forms.Form):
+    query = forms.CharField(
+        label='Поиск',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Введите id оборудования'
+        })
+    )
+    category = forms.ChoiceField(
+        label='Категория',
+        choices=[
+            ('all', 'Все категории'),
+            ('books', 'Книги'),
+            ('movies', 'Фильмы'),
+            ('music', 'Музыка'),
+        ],
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )

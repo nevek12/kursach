@@ -69,6 +69,38 @@ function sendInfoTcp() {
 
 }
 
+function sendEquipment(){
+    fetch('/generate/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+            'message': message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.parts) {
+            backspace(12);
+            let index = 0;
+            function typeWriter() {
+                if (index < data.parts.length) {
+
+                    appendResponse(data.parts[index], 'response-box');
+                    index++;
+                    setTimeout(typeWriter, 100);
+                }
+            }
+            typeWriter();
+        }
+    }).catch(error => {
+        console.error('Error:', error);
+        appendResponse('\nОшибка: ' + error.message, 'response-box');
+    });
+}
+
 // Инициализация после загрузки документа
 document.addEventListener('DOMContentLoaded', () => {
     // Обработчик кнопки
@@ -81,6 +113,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
         }
     });
-
+    document.getElementById('id_query').addEventListener('click', sendEquipment)
 });
 

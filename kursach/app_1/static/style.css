@@ -113,11 +113,15 @@ button:hover {
     opacity: 0.9; /* Немного уменьшаем непрозрачность при наведении */
 }
 /* ----------------------  стили для поле ввода к llm ------------------------- */
+/*#chat-container {*/
+/*    position: fixed;*/
+/*    left: 1170px;*/
+/*} при параметре position: fixed не работает нейронка странно*/
 #chat-container {
     max-width: 800px;
     margin-left: 1150px;
-    margin-top: -200px;
 }
+
 #response-box {
     height: 500px;
     border: 1px solid #ccc;
@@ -135,6 +139,13 @@ button:hover {
 /* --------------------------------   стили для вывода данных tcp -------------------- */
 
 #view-container-tcp {
-    margin-top: -450px;
-}
 
+    margin-top: -550px;
+}
+/* ---------------------------- стили для поиска id оборудования ---------------------- */
+#search_id_equipment {
+    position: absolute;
+    top: 30px;
+    left: 350px;
+    max-width: 1200px;
+}

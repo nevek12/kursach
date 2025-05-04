@@ -2,13 +2,12 @@ from django.shortcuts import render
 from django.views import View
 from django.urls import reverse
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 
-from .forms import SignUpForm, SignInForm
+from .forms import SignUpForm, SignInForm, SearchForm
 from django.contrib.auth import login, authenticate, logout
-from django.http import HttpResponseRedirect, StreamingHttpResponse
+from django.http import HttpResponseRedirect
 
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
@@ -32,10 +31,11 @@ def sign_out(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
-def packet_list():
-    return {"packets": TcpPacket.objects.all().order_by("-created_at")}
+def packet_list(source_ip=192):
+    tcppacket = TcpPacket.objects.filter(source_ip=192)
+    return {"packets": tcppacket.all().order_by("-created_at")}
 
-
+#Ображается наше оборудование
 @method_decorator(csrf_exempt, name='dispatch')
 class TcpDumpData(APIView):
     authentication_classes = [TokenAuthentication]
@@ -85,7 +85,6 @@ class TcpDumpData(APIView):
 #Прописать аннотацию для доступа к контенту после авторизации, в том числе и для API
 #Фанйнтюнинг модели (чтобы на русском лучше отвечала). И поработать над постобработкой
 def index(request):
-
     return render(request, 'app_1/index.html', packet_list())
 
 class SignUpView(View):
@@ -167,3 +166,28 @@ class GenerateResponseView(View):
 
 def http_method_not_allowed(self, request, *args, **kwargs):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+class SearchView(TemplateView):
+
+    def get(self, request, *args, **kwargs):
+        return render(request, 'app_1/index.html', packet_list())
+
+
+    # def get_context_data(self, **kwargs):
+    #     context = super().get_context_data(**kwargs)
+    #     form = SearchForm(self.request.GET or None)
+    #     results = []
+    #
+    #     if form.is_valid():
+    #         query = form.cleaned_data.get('query')
+    #         category = form.cleaned_data.get('category') or 'all'
+    #
+    #         # Здесь должна быть ваша логика поиска
+    #         # Пример:
+    #         # results = YourModel.objects.filter(...)
+    #
+    #     context['form'] = form
+    #     context['results'] = results
+    #     return context
+
