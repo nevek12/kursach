@@ -5,6 +5,7 @@
 
 {% block pagination %}
 {% if user.is_authenticated %}
+<!--
 <div class="container">
     <h2>Управление обучением модели</h2>
 
@@ -18,6 +19,7 @@
         <button id="predictButton">Спрогнозировать</button>
     </div>
 </div>
+-->
 <script src="{% static 'js/chat.js' %}"></script>
 
 <div id="chat-container">
@@ -25,6 +27,70 @@
     <input type="text" id="input-box" placeholder="Введите ваш запрос...">
     <button onclick="sendMessage()">Отправить</button>
 </div>
+    
+{#поиск оборудования    #}
+<div class="container mt-5" id="search_id_equipment">
+    <form method="GET" action="{% url 'index' %}" class="mb-4">
+        <div class="row g-3 align-items-center">
+            <!-- Поле поиска -->
+            <div class="col-md-6">
+                <div class="form-floating">  <!-- Добавляем обертку для floating labels -->
+                    <input type="text" 
+                           class="form-control" 
+                           id="id_query" 
+                           name="query" 
+                           placeholder="Введите запрос"
+                           value="{{ form.query.value|default:'' }}"
+                           autocomplete="off">
+                    <label for="id_query">Поиск</label>
+                </div>
+            </div>
+            
+            <div id="autocomplete-results" class="list-group" style="display: none;"></div>
+            <!-- Выпадающий список -->
+{#            <div class="col-md-4">#}
+{#                <div class="form-floating">#}
+{#                    <select class="form-select" #}
+{#                            id="id_category" #}
+{#                            name="category">#}
+{#                        {% for value, label in form.category.field.choices %}#}
+{#                            <option value="{{ value }}" #}
+{#                                {% if form.category.value == value %}selected{% endif %}>#}
+{#                                {{ label }}#}
+{#                            </option>#}
+{#                        {% endfor %}#}
+{#                    </select>#}
+{#                    <label for="id_category">Категория</label>#}
+{#                </div>#}
+{#            </div>#}
+            
+            <!-- Кнопка поиска -->
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100 h-100" onclick="sendEquipment()">
+                    Найти
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Остальная часть шаблона с результатами -->
+    {% if results %}
+    <div class="card border-0 shadow">
+        <div class="card-body">
+            <h5 class="card-title mb-4">Результаты поиска</h5>
+            <div class="list-group">
+                {% for item in results %}
+                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <span>{{ item.title }}</span>
+                    <small class="text-muted">{{ item.category }}</small>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+    
 <div id="view-container-tcp"> 
     <div class="container mt-4">
         <h1>Последние пакеты</h1>
@@ -51,8 +117,9 @@
             </tbody>
         </table>
     </div>  
-</div>   
-
+</div>
+    
+    
 
 {% else %}
 <div class="container-fluid vh-100">
