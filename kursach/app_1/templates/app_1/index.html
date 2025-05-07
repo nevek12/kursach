@@ -5,21 +5,7 @@
 
 {% block pagination %}
 {% if user.is_authenticated %}
-<!--
-<div class="container">
-    <h2>Управление обучением модели</h2>
 
-    <input type="number" placeholder="Количество эпох" id="epochsInput">
-    <button id="trainButton">Обучать</button>
-
-    <div style="margin-top: 20px;">
-        <button id="pauseButton">Пауза</button>
-        <button id="stopButton">Остановить обучение</button>
-        <button id="resumeButton">Возобновить обучение</button>
-        <button id="predictButton">Спрогнозировать</button>
-    </div>
-</div>
--->
 <script src="{% static 'js/chat.js' %}"></script>
 
 <div id="chat-container">
@@ -47,22 +33,6 @@
             </div>
             
             <div id="autocomplete-results" class="list-group" style="display: none;"></div>
-            <!-- Выпадающий список -->
-{#            <div class="col-md-4">#}
-{#                <div class="form-floating">#}
-{#                    <select class="form-select" #}
-{#                            id="id_category" #}
-{#                            name="category">#}
-{#                        {% for value, label in form.category.field.choices %}#}
-{#                            <option value="{{ value }}" #}
-{#                                {% if form.category.value == value %}selected{% endif %}>#}
-{#                                {{ label }}#}
-{#                            </option>#}
-{#                        {% endfor %}#}
-{#                    </select>#}
-{#                    <label for="id_category">Категория</label>#}
-{#                </div>#}
-{#            </div>#}
             
             <!-- Кнопка поиска -->
             <div class="col-md-2">
@@ -70,6 +40,9 @@
                     Найти
                 </button>
             </div>
+
+            
+
         </div>
     </form>
 
@@ -89,17 +62,20 @@
         </div>
     </div>
     {% endif %}
+
 </div>
-    
+
+    {#вывод информации о tcp подключениях#}
 <div id="view-container-tcp"> 
     <div class="container mt-4">
         <h1>Последние пакеты</h1>
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th>Оборудование</th>
                     <th>Время</th>
-                    <th>Источник</th>
-                    <th>Назначение</th>
+                    <th>Откуда</th>
+                    <th>Куда</th>
                     <th>Протокол</th>
                     <th>Детали</th>
                 </tr>
@@ -107,6 +83,7 @@
             <tbody>
                 {% for packet in packets %}
                 <tr>
+                    <td>{{ packet.equipment_id.name }}</td>
                     <td>{{ packet.timestamp }}</td>
                     <td>{{ packet.source_ip }}</td>
                     <td>{{ packet.destination_ip }}</td>
@@ -119,8 +96,43 @@
     </div>  
 </div>
     
+{#вывод информации о добавленных оборудованиях#}
+<div id="equipment_show">    
+    <h2>Оборудования</h2>
+    <table class="table">
+        <thead>
+            <tr class="table-primary">
+                <th>Название</th>
+                <th>IP-адресс</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipment in equipments %}
+            <tr class="table-info">
+                <td>{{ equipment.name }}</td>
+                <td>{{ equipment.ipaddress }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     
-
+    <div id="btns" class="row">
+        {#кнопка добавления оборудования#}
+        <div id='add_equipment'>
+            <a href="{% url 'add_equipment' %}" class="btn btn-primary">
+                Добавить оборудование
+            </a>
+        </div>
+        
+        {#кнопка удаления оборудования#}
+        <div id='delete_equipment'>
+            <a href="{% url 'equipment_list' %}" class="btn btn-danger">
+                Удалить оборудование
+            </a>
+        </div>
+    </div>
+    
+</div>    
 {% else %}
 <div class="container-fluid vh-100">
     <div class="row h-100 justify-content-center align-items-center">

@@ -70,14 +70,14 @@ function sendInfoTcp() {
 }
 
 function sendEquipment(){
-    fetch('/generate/', {
+    fetch('/', {
         method: 'POST',
         headers: {
             'X-CSRFToken': getCookie('csrftoken'),
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
-            'message': message
+            'source_ip': source_ip,
         })
     })
     .then(response => response.json())

@@ -9,4 +9,7 @@ urlpatterns = [
     path('tag/', ChatView.as_view(), name='chat'),
     path('generate/', GenerateResponseView.as_view(), name='generate_response'),
     path('api/tcpdump/', TcpDumpData.as_view(), name='tcp_info'),
+    path('add_equipment/', AddEquipmentView.as_view(), name='add_equipment'),
+    path('equipment/', EquipmentListView.as_view(), name='equipment_list'),
+    path('equipment/delete/<int:pk>/', EquipmentDeleteView.as_view(), name='delete_equipment'),
 ]

@@ -12,8 +12,16 @@
                     {% else %}
                         <a class="nav-link" href="{% url 'index' %}">Главная</a>
                     {% endif %}
-                    <a class="nav-link" href="#">Че-то там 1 раздел</a>
-                    <a class="nav-link" href="#">Че-то там 2 раздел</a>
+                    {% if request.get_full_path == '/add_equipment/' %}
+                        <a class="nav-link active" href="/add_equipment/">Добавить оборудование</a>
+                    {% else %}
+                        <a class="nav-link" href="/add_equipment/">Добавить оборудование</a>
+                    {% endif %}    
+                    {% if request.get_full_path == '/equipment/' %}
+                        <a class="nav-link active" href="/equipment/">Удалить оборудование</a>
+                    {% else %}    
+                        <a class="nav-link" href="/equipment/">Удалить оборудование</a>
+                    {% endif %}    
                     <a class="nav-link" href="#">Че-то там 3 раздел</a>
                     <a class="nav-link" href="#">Че-то там последний раздел</a>
                 </div>

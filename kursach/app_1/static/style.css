@@ -77,7 +77,6 @@
 
 body {
     font-family: Arial, sans-serif;
-    padding: 20px;
     margin: 0;
     background-color: #f4f4f4;
 }
@@ -118,29 +117,36 @@ button:hover {
 /*    left: 1170px;*/
 /*} при параметре position: fixed не работает нейронка странно*/
 #chat-container {
-    max-width: 800px;
-    margin-left: 1150px;
+    position: fixed;
+    left: 1200px;
+    width: 470px;
 }
 
 #response-box {
-    height: 500px;
+    height: 600px;
     border: 1px solid #ccc;
     padding: 10px;
     margin: 10px 0;
     overflow-y: auto;
     white-space: pre-wrap;
+    background-color: rgba(0, 123, 255, 0.6);
+    border-radius: 10px;
+
 }
 #input-box {
     width: 100%;
     padding: 10px;
-    margin: 10px 0;
+    border-radius: 25px;
 }
 
 /* --------------------------------   стили для вывода данных tcp -------------------- */
 
 #view-container-tcp {
+    position: absolute;
+    max-width: 1200px;
+    left: 350px;
+    top: 200px;
 
-    margin-top: -550px;
 }
 /* ---------------------------- стили для поиска id оборудования ---------------------- */
 #search_id_equipment {
@@ -148,4 +154,28 @@ button:hover {
     top: 30px;
     left: 350px;
     max-width: 1200px;
+}
+
+
+/* ------------------------------для вывода оборудования---------------------------------- */
+#equipment_show {
+    width: 350px;
+    left: 10px;
+    position: absolute;
+}
+
+#btns {
+    position: relative;
+    width: 350px;
+}
+
+#add_equipment {
+    position: relative;
+    max-width: 170px;
+}
+
+#delete_equipment {
+    position: relative;
+    max-width: 170px;
+    left: 30px;
 }
