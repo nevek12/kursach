@@ -1,0 +1,51 @@
+{% extends "./base.html" %}
+{% load static %}
+{% block title %}Список TCP-пакетов{% endblock %}
+
+
+{% block content %}
+<h2>Список TCP-пакетов</h2>
+
+<table class="table table-striped table-hover">
+    <thead class="table-dark">
+        <tr>
+            <th>Время</th>
+            <th>Источник</th>
+            <th>Назначение</th>
+            <th>Протокол</th>
+            <th>Оборудование</th>
+            <th>IP-адрес оборудования</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% if packets %}
+            {% for packet in packets %}
+                <tr>
+                    <td>{{ packet.timestamp }}</td>
+                    <td>{{ packet.source_ip }}</td>
+                    <td>{{ packet.destination_ip }}</td>
+                    <td>{{ packet.protocol }}</td>
+                    <td>
+                        {% if packet.equipment_id %}
+                            {{ packet.equipment_id.name }}
+                        {% else %}
+                            <span class="text-muted">Не указано</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if packet.equipment_id %}
+                            {{ packet.equipment_id.ipaddress }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        {% else %}
+            <tr>
+                <td colspan="6" class="text-center text-muted">Нет записей</td>
+            </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

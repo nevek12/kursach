@@ -2,26 +2,15 @@
 {% load static %}
 {% block title %}Главная страница{% endblock %}
 
-
-{% block pagination %}
-{% if user.is_authenticated %}
-<!--
-<div class="container">
-    <h2>Управление обучением модели</h2>
-
-    <input type="number" placeholder="Количество эпох" id="epochsInput">
-    <button id="trainButton">Обучать</button>
-
-    <div style="margin-top: 20px;">
-        <button id="pauseButton">Пауза</button>
-        <button id="stopButton">Остановить обучение</button>
-        <button id="resumeButton">Возобновить обучение</button>
-        <button id="predictButton">Спрогнозировать</button>
-    </div>
-</div>
--->
+{% block content %}
 <script src="{% static 'js/chat.js' %}"></script>
+<script src="{% static 'js/alert.js' %}"></script>
+{#проверка на зарегистрированного пользователя    #}
+{% if user.is_authenticated %}
 
+
+
+{#чат с искуственным интелектом     #}
 <div id="chat-container">
     <div id="response-box"></div>
     <input type="text" id="input-box" placeholder="Введите ваш запрос...">
@@ -30,39 +19,22 @@
     
 {#поиск оборудования    #}
 <div class="container mt-5" id="search_id_equipment">
-    <form method="GET" action="{% url 'index' %}" class="mb-4">
+
+    <form method="POST" action="{% url 'index' %}" class="mb-4">
+        {% csrf_token %}
         <div class="row g-3 align-items-center">
             <!-- Поле поиска -->
             <div class="col-md-6">
-                <div class="form-floating">  <!-- Добавляем обертку для floating labels -->
+                <div class="form-floating">
                     <input type="text" 
                            class="form-control" 
                            id="id_query" 
                            name="query" 
-                           placeholder="Введите запрос"
-                           value="{{ form.query.value|default:'' }}"
-                           autocomplete="off">
-                    <label for="id_query">Поиск</label>
+                           placeholder="">
+                    <label for="id_query">Поиск оборудования</label>
                 </div>
             </div>
-            
-            <div id="autocomplete-results" class="list-group" style="display: none;"></div>
-            <!-- Выпадающий список -->
-{#            <div class="col-md-4">#}
-{#                <div class="form-floating">#}
-{#                    <select class="form-select" #}
-{#                            id="id_category" #}
-{#                            name="category">#}
-{#                        {% for value, label in form.category.field.choices %}#}
-{#                            <option value="{{ value }}" #}
-{#                                {% if form.category.value == value %}selected{% endif %}>#}
-{#                                {{ label }}#}
-{#                            </option>#}
-{#                        {% endfor %}#}
-{#                    </select>#}
-{#                    <label for="id_category">Категория</label>#}
-{#                </div>#}
-{#            </div>#}
+
             
             <!-- Кнопка поиска -->
             <div class="col-md-2">
@@ -72,31 +44,23 @@
             </div>
         </div>
     </form>
-
-    <!-- Остальная часть шаблона с результатами -->
-    {% if results %}
-    <div class="card border-0 shadow">
-        <div class="card-body">
-            <h5 class="card-title mb-4">Результаты поиска</h5>
-            <div class="list-group">
-                {% for item in results %}
-                <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                    <span>{{ item.title }}</span>
-                    <small class="text-muted">{{ item.category }}</small>
-                </a>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
-    
+
+{#    ошибка при не нахождении оборудования#}
+{% if error %}
+<div id="error-alert" class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
+    {{ error }}
+</div>
+{% endif %}
+
+{#вывод информации о tcp подключениях#}
 <div id="view-container-tcp"> 
     <div class="container mt-4">
         <h1>Последние пакеты</h1>
         <table class="table table-striped">
             <thead>
                 <tr>
+                    <th>Оборудование</th>
                     <th>Время</th>
                     <th>Источник</th>
                     <th>Назначение</th>
@@ -107,6 +71,7 @@
             <tbody>
                 {% for packet in packets %}
                 <tr>
+                    <td>{{ packet.equipment_id.name }}</td>
                     <td>{{ packet.timestamp }}</td>
                     <td>{{ packet.source_ip }}</td>
                     <td>{{ packet.destination_ip }}</td>
@@ -119,8 +84,43 @@
     </div>  
 </div>
     
+{#вывод информации о добавленных оборудованиях#}
+<div id="equipment_show">    
+    <h2>Оборудования</h2>
+    <table class="table">
+        <thead>
+            <tr class="table-primary">
+                <th>Название</th>
+                <th>IP-адресс</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for equipment in equipments %}
+            <tr class="table-info">
+                <td>{{ equipment.name }}</td>
+                <td>{{ equipment.ipaddress }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
     
-
+    <div id="btns" class="row">
+        {#кнопка добавления оборудования#}
+        <div id='add_equipment'>
+            <a href="{% url 'add_equipment' %}" class="btn btn-primary">
+                Добавить оборудование
+            </a>
+        </div>
+        
+        {#кнопка удаления оборудования#}
+        <div id='delete_equipment'>
+            <a href="{% url 'equipment_list' %}" class="btn btn-danger">
+                Удалить оборудование
+            </a>
+        </div>
+    </div>
+</div>
+{# не авторизованный пользователь    #}
 {% else %}
 <div class="container-fluid vh-100">
     <div class="row h-100 justify-content-center align-items-center">

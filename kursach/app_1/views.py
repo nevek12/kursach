@@ -1,62 +1,66 @@
-from django.shortcuts import render
+import re
+
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
-from django.urls import reverse
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-
-from .forms import SignUpForm, SignInForm, SearchForm
-from django.contrib.auth import login, authenticate, logout
-from django.http import HttpResponseRedirect
-
+from django.urls import reverse, reverse_lazy
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-import requests
-import re
+from django.views.generic import ListView
+from django.contrib.auth import login, authenticate, logout
+from django.http import HttpResponseRedirect
+
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
+from .forms import SignUpForm, SignInForm
+from .models import TcpPacket, Equipment
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
 
-from .models import TcpPacket
-
-
-class MainView(View):
-    pass
-
-
-
+#регистрирует пользователя
 def sign_out(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
-def packet_list(source_ip=192):
-    tcppacket = TcpPacket.objects.filter(source_ip=192)
-    return {"packets": tcppacket.all().order_by("-created_at")}
 
-#Ображается наше оборудование
+
+#обработка пришедших данных оборудования
 @method_decorator(csrf_exempt, name='dispatch')
 class TcpDumpData(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        # забираем данные о tcp оборудовании
         packet_data = request.data.get("packet_data")
+        # проверяем ipaddress
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ipaddress = x_forwarded_for.split(',')[0].strip()
+        else:
+            ipaddress = request.META.get('REMOTE_ADDR')
 
         if not packet_data:
             return JsonResponse({"status": "error", "message": "No packet data provided"}, status=400)
+        # проверка на разрешенный ipaddress
+        if not Equipment.objects.filter(ipaddress=ipaddress).exists():
+            return JsonResponse({'status': 'error', 'message': 'your equipment not found'}, status=403)
 
         # Парсинг данных пакета
-        parsed_data = self.parse_packet(packet_data)
+        parsed_data = self.parse_packet(packet_data, ipaddress)
 
         if parsed_data:
+            # сохранение данных в бд
             self.save_packet(parsed_data)
             return JsonResponse({"status": "success", "data": parsed_data})
 
         return JsonResponse({"status": "error", "message": "Invalid packet format"}, status=400)
 
-    def parse_packet(self, raw_data: str) -> dict:
+    def parse_packet(self, raw_data: str, ipaddress: str) -> dict:
         """Парсинг сырых данных из tcpdump"""
         pattern = r"(\d+:\d+:\d+\.\d+) IP (.+?) > (.+?): (.+)"
         match = re.match(pattern, raw_data)
@@ -64,29 +68,29 @@ class TcpDumpData(APIView):
         if not match:
             return None
 
-        return {
-            "timestamp": match.group(1),
-            "source_ip": match.group(2).split(".")[0],
-            "destination_ip": match.group(3).split(".")[0],
-            "protocol": "IP",
-            "details": match.group(4)
-        }
+        return {'tcppacket': {
+                                "timestamp": match.group(1),
+                                "source_ip": '.'.join(match.group(2).split(".")[:-1]) + ':' + match.group(2).split(".")[-1],
+                                "destination_ip": '.'.join(match.group(3).split(".")[:-1]) + ':' + match.group(3).split(".")[-1],
+                                "protocol": "IP",
+                                "details": match.group(4)
+                             },
+                'equipment': {'ipaddress': ipaddress}
+               }
 
     def save_packet(self, data: dict):
         """Сохранение пакета в базу данных"""
+
         TcpPacket.objects.create(
-            timestamp=data['timestamp'],
-            source_ip=data['source_ip'],
-            destination_ip=data['destination_ip'],
-            protocol=data['protocol'],
-            details=data['details']
+            equipment_id = Equipment.objects.get(ipaddress=data['equipment']['ipaddress']),
+            timestamp=data['tcppacket']['timestamp'],
+            source_ip=data['tcppacket']['source_ip'],
+            destination_ip=data['tcppacket']['destination_ip'],
+            protocol=data['tcppacket']['protocol'],
+            details=data['tcppacket']['details']
         )
 
-#Прописать аннотацию для доступа к контенту после авторизации, в том числе и для API
-#Фанйнтюнинг модели (чтобы на русском лучше отвечала). И поработать над постобработкой
-def index(request):
-    return render(request, 'app_1/index.html', packet_list())
-
+#Для регистрации пользователя
 class SignUpView(View):
     def get(self, request, *args, **kwargs):
         form = SignUpForm()
@@ -103,7 +107,7 @@ class SignUpView(View):
         return render(request, 'app_1/signup.html', context={
             'form': form,
         })
-
+#для входа пользователя
 class SignInView(View):
     def get(self, request, *args, **kwargs):
         form = SignInForm()
@@ -123,15 +127,7 @@ class SignInView(View):
                 form.add_error(None, 'Неправильный пароль или указанная учётная запись не существует!')
                 return render(request, 'app_1/signin.html', context={'form':form})
 
-class ChatView(TemplateView):
-    template_name = 'app_1/chat.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Можно добавить дополнительный контекст при необходимости
-        return context
-
-
+#обработка запроса для нейросети от пользователя
 @method_decorator(csrf_exempt, name='dispatch')
 class GenerateResponseView(View):
     def post(self, request, *args, **kwargs):
@@ -163,31 +159,65 @@ class GenerateResponseView(View):
 
         return JsonResponse({'parts': parts})
 
-
-def http_method_not_allowed(self, request, *args, **kwargs):
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-
-class SearchView(TemplateView):
+#главная страница
+class MainView(TemplateView):
 
     def get(self, request, *args, **kwargs):
-        return render(request, 'app_1/index.html', packet_list())
+        return render(request, 'app_1/index.html', self.packet_list() | self.equipment_list())
+
+    def post(self, request, *args, **kwargs):
+        # получаем имя оборудования для поиска
+        name_equipment = request.POST.get('query', '').strip()
+        #проверка что оборудование существует
+        if Equipment.objects.filter(name=name_equipment).exists():
+            equipment = Equipment.objects.get(name=name_equipment)
+            packets = equipment.tcp_packets.all()
+            return render(request, 'app_1/show_tcp.html', {'packets': packets})
+        else:
+            # Передаем ошибку и данные из packet_list + equipment_list
+
+            context = self.packet_list() | self.equipment_list()
+            context['error'] = f"Оборудование '{name_equipment}' не найдено"
+            return render(request, 'app_1/index.html', context)
+
+    #вывод недавних tcpзапросов
+    def packet_list(self):
+        # Загружаем TcpPacket с предварительной загрузкой связанных equipment
+        packets = TcpPacket.objects.select_related('equipment_id').order_by('-created_at')[:10]
+        return {"packets": packets}
+
+    #вывод оборудований
+    def equipment_list(self):
+        equipments = Equipment.objects.all()
+        return {"equipments": equipments}
 
 
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     form = SearchForm(self.request.GET or None)
-    #     results = []
-    #
-    #     if form.is_valid():
-    #         query = form.cleaned_data.get('query')
-    #         category = form.cleaned_data.get('category') or 'all'
-    #
-    #         # Здесь должна быть ваша логика поиска
-    #         # Пример:
-    #         # results = YourModel.objects.filter(...)
-    #
-    #     context['form'] = form
-    #     context['results'] = results
-    #     return context
+#добавление оборудования
+class AddEquipmentView(TemplateView):
+    def get(self, request, *args, **kwargs):
+        return render(request, 'app_1/add_equipment.html')
+    def post(self, request, *args, **kwargs):
+        name = request.POST.get('name')
+        ip_address = request.POST.get('ip_address')
+        if name and ip_address:
+            Equipment.objects.create(
+                name=name,
+                ipaddress=ip_address
+            )
+            return redirect(reverse('index'))
+        return render(request, 'app_1/add_equipment.html')
+
+# класс для вывода оборудования
+class EquipmentListView(ListView):
+    model = Equipment
+    template_name = 'equipment_list.html'  # Шаблон, который будем использовать
+    context_object_name = 'equipments'
+    success_url = reverse_lazy('equipment_list')
+
+# класс для удаление оборудования
+class EquipmentDeleteView(View):
+    def post(self, request, *args, **kwargs):
+        equipment = get_object_or_404(Equipment, pk=kwargs['pk'])
+        equipment.delete()
+        return redirect('equipment_list')
 
