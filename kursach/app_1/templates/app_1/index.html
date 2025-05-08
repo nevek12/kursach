@@ -2,14 +2,15 @@
 {% load static %}
 {% block title %}Главная страница{% endblock %}
 
-
-{% block pagination %}
-{% if user.is_authenticated %}
-
-    
+{% block content %}
 <script src="{% static 'js/chat.js' %}"></script>
 <script src="{% static 'js/alert.js' %}"></script>
-    
+{#проверка на зарегистрированного пользователя    #}
+{% if user.is_authenticated %}
+
+
+
+{#чат с искуственным интелектом     #}
 <div id="chat-container">
     <div id="response-box"></div>
     <input type="text" id="input-box" placeholder="Введите ваш запрос...">
@@ -17,26 +18,23 @@
 </div>
     
 {#поиск оборудования    #}
-    
 <div class="container mt-5" id="search_id_equipment">
-    
+
     <form method="POST" action="{% url 'index' %}" class="mb-4">
         {% csrf_token %}
         <div class="row g-3 align-items-center">
-            <!-- Поле поиска -->    
+            <!-- Поле поиска -->
             <div class="col-md-6">
-                <div class="form-floating">  <!-- Добавляем обертку для floating labels -->
+                <div class="form-floating">
                     <input type="text" 
                            class="form-control" 
                            id="id_query" 
                            name="query" 
-                           placeholder="Введите запрос"
-                           autocomplete="off">
-                    <label for="id_query">Поиск</label>
+                           placeholder="">
+                    <label for="id_query">Поиск оборудования</label>
                 </div>
             </div>
-            
-            <div id="autocomplete-results" class="list-group" style="display: none;"></div>
+
             
             <!-- Кнопка поиска -->
             <div class="col-md-2">
@@ -44,21 +42,18 @@
                     Найти
                 </button>
             </div>
-
-            
-
         </div>
     </form>
 </div>
+
 {#    ошибка при не нахождении оборудования#}
 {% if error %}
 <div id="error-alert" class="alert alert-danger alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 1050;">
     {{ error }}
 </div>
 {% endif %}
-    
-    
-    {#вывод информации о tcp подключениях#}
+
+{#вывод информации о tcp подключениях#}
 <div id="view-container-tcp"> 
     <div class="container mt-4">
         <h1>Последние пакеты</h1>
@@ -124,8 +119,8 @@
             </a>
         </div>
     </div>
-    
-</div>    
+</div>
+{# не авторизованный пользователь    #}
 {% else %}
 <div class="container-fluid vh-100">
     <div class="row h-100 justify-content-center align-items-center">

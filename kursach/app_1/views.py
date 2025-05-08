@@ -1,41 +1,34 @@
+import re
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.urls import reverse, reverse_lazy
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
-from django.contrib import messages
-
-from .forms import SignUpForm, SignInForm, SearchForm
-from django.contrib.auth import login, authenticate, logout
-from django.http import HttpResponseRedirect
-
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
-import requests
-from django.views.generic import ListView, DeleteView
-import re
+from django.views.generic import ListView
+from django.contrib.auth import login, authenticate, logout
+from django.http import HttpResponseRedirect
+
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
+from .forms import SignUpForm, SignInForm
+from .models import TcpPacket, Equipment
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
 
-from .models import TcpPacket, Equipment
-
-
-class MainView(View):
-    pass
-
-
-
+#регистрирует пользователя
 def sign_out(request):
     logout(request)
     return HttpResponseRedirect(reverse('index'))
 
 
 
-#Ображается наше оборудование
+#обработка пришедших данных оборудования
 @method_decorator(csrf_exempt, name='dispatch')
 class TcpDumpData(APIView):
     authentication_classes = [TokenAuthentication]
@@ -55,7 +48,7 @@ class TcpDumpData(APIView):
             return JsonResponse({"status": "error", "message": "No packet data provided"}, status=400)
         # проверка на разрешенный ipaddress
         if not Equipment.objects.filter(ipaddress=ipaddress).exists():
-            return JsonResponse({'status': 'error', 'message': 'your equipment not found'})
+            return JsonResponse({'status': 'error', 'message': 'your equipment not found'}, status=403)
 
         # Парсинг данных пакета
         parsed_data = self.parse_packet(packet_data, ipaddress)
@@ -97,10 +90,7 @@ class TcpDumpData(APIView):
             details=data['tcppacket']['details']
         )
 
-
-def index(request):
-    return render(request, 'app_1/index.html', packet_list())
-
+#Для регистрации пользователя
 class SignUpView(View):
     def get(self, request, *args, **kwargs):
         form = SignUpForm()
@@ -117,7 +107,7 @@ class SignUpView(View):
         return render(request, 'app_1/signup.html', context={
             'form': form,
         })
-
+#для входа пользователя
 class SignInView(View):
     def get(self, request, *args, **kwargs):
         form = SignInForm()
@@ -137,15 +127,7 @@ class SignInView(View):
                 form.add_error(None, 'Неправильный пароль или указанная учётная запись не существует!')
                 return render(request, 'app_1/signin.html', context={'form':form})
 
-class ChatView(TemplateView):
-    template_name = 'app_1/chat.html'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Можно добавить дополнительный контекст при необходимости
-        return context
-
-
+#обработка запроса для нейросети от пользователя
 @method_decorator(csrf_exempt, name='dispatch')
 class GenerateResponseView(View):
     def post(self, request, *args, **kwargs):
@@ -177,19 +159,16 @@ class GenerateResponseView(View):
 
         return JsonResponse({'parts': parts})
 
-
-def http_method_not_allowed(self, request, *args, **kwargs):
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
-
-
-class SearchView(TemplateView):
+#главная страница
+class MainView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         return render(request, 'app_1/index.html', self.packet_list() | self.equipment_list())
 
     def post(self, request, *args, **kwargs):
+        # получаем имя оборудования для поиска
         name_equipment = request.POST.get('query', '').strip()
-
+        #проверка что оборудование существует
         if Equipment.objects.filter(name=name_equipment).exists():
             equipment = Equipment.objects.get(name=name_equipment)
             packets = equipment.tcp_packets.all()
@@ -213,7 +192,7 @@ class SearchView(TemplateView):
         return {"equipments": equipments}
 
 
-
+#добавление оборудования
 class AddEquipmentView(TemplateView):
     def get(self, request, *args, **kwargs):
         return render(request, 'app_1/add_equipment.html')
