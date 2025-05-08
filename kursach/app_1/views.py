@@ -4,6 +4,7 @@ from django.urls import reverse, reverse_lazy
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
+from django.contrib import messages
 
 from .forms import SignUpForm, SignInForm, SearchForm
 from django.contrib.auth import login, authenticate, logout
@@ -186,6 +187,20 @@ class SearchView(TemplateView):
     def get(self, request, *args, **kwargs):
         return render(request, 'app_1/index.html', self.packet_list() | self.equipment_list())
 
+    def post(self, request, *args, **kwargs):
+        name_equipment = request.POST.get('query', '').strip()
+
+        if Equipment.objects.filter(name=name_equipment).exists():
+            equipment = Equipment.objects.get(name=name_equipment)
+            packets = equipment.tcp_packets.all()
+            return render(request, 'app_1/show_tcp.html', {'packets': packets})
+        else:
+            # Передаем ошибку и данные из packet_list + equipment_list
+
+            context = self.packet_list() | self.equipment_list()
+            context['error'] = f"Оборудование '{name_equipment}' не найдено"
+            return render(request, 'app_1/index.html', context)
+
     #вывод недавних tcpзапросов
     def packet_list(self):
         # Загружаем TcpPacket с предварительной загрузкой связанных equipment
@@ -196,22 +211,7 @@ class SearchView(TemplateView):
     def equipment_list(self):
         equipments = Equipment.objects.all()
         return {"equipments": equipments}
-    # def get_context_data(self, **kwargs):
-    #     context = super().get_context_data(**kwargs)
-    #     form = SearchForm(self.request.GET or None)
-    #     results = []
-    #
-    #     if form.is_valid():
-    #         query = form.cleaned_data.get('query')
-    #         category = form.cleaned_data.get('category') or 'all'
-    #
-    #         # Здесь должна быть ваша логика поиска
-    #         # Пример:
-    #         # results = YourModel.objects.filter(...)
-    #
-    #     context['form'] = form
-    #     context['results'] = results
-    #     return context
+
 
 
 class AddEquipmentView(TemplateView):
