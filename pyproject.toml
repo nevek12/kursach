@@ -12,7 +12,8 @@ dependencies = [
     "aiohttp (>=3.11.14,<4.0.0)",
     "langchain-ollama (>=0.3.0,<0.4.0)",
     "djangorestframework (>=3.16.0,<4.0.0)",
-    "psycopg2-binary (>=2.9.10,<3.0.0)"
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "environs (>=14.1.1,<15.0.0)"
 ]
 
 
